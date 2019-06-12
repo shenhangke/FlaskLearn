@@ -24,6 +24,8 @@ def say_hello_decorate():
     print("this is the func which has deccorate by @")
 
 say_hello_decorate():"""
+
+"""
 #所以实际上装饰器的作用就是加上了一个外层包装，让执行这个函数之前会执行一些其他已经定义好的代码
 #而被装饰器修饰的函数传入的参数是一个函数指针，并且这个函数应该返回一个函数指针，这个函数可以是无预定义的
 
@@ -32,8 +34,8 @@ def debug_other(func):
     def innerfunc():
         print("this is direct inner func")  #理论上，这里应该是要返回这个函数的，但是这里并没有返回这个函数？？？
         #或者说，函数执行到这里就报错？
-        return func()
-    return innerfunc()  #这里要注意的是，并没有真正的制定传进来的函数，看看是否可以执行
+        #return func()
+    return innerfunc  #这里要注意的是，并没有真正的制定传进来的函数，看看是否可以执行
 
 @debug_other
 def say_hello_dir():
@@ -42,6 +44,14 @@ def say_hello_dir():
 say_hello_dir()
 #在这里报错了？为什么呢，难道得到的函数必须使用到下面的定义的函数？
 #从语法上不应当做这种限制啊。。。
+#解释，之前是因为innerfunc多加了一个括号，变成了执行
+#这么看来，装饰器的作用就是返回一个函数，其后面修饰的函数必定会接收一个函数指针
+#然后通过这个函数指针返回一个函数，这个函数可以是任意的函数，甚至可以是经过包装的函数，甚至都可以跟后面定义的函数一点关系都没有
+"""
+"""
+    大概这个装饰器的作用就是，紧诶着的后面的函数作为一个函数指针传到修饰的函数中，然后通过这个函数返回一个函数指针。
+    后面的函数名也可以当做这个装饰函数返回的函数使用
+"""
 
 
 
@@ -61,3 +71,37 @@ say_hello = debug(say_hello)  # 添加功能并保持原函数名不变
 
 #如果调用debug(say_hello)函数的话，实际上返回值say_hello是wrapper函数
 """
+
+
+from flask import Flask
+app = Flask(__name__)   #指定flask是不是运行在我们要运行的这个当前脚本中，如果是作为模块导入的，那么有可能不会执行？？
+
+@app.route('/hello')    #通过装饰，告诉flask什么样的URL是我应该接受处理的，当这样的URL过来的时候我就调用下面的函数
+def hello_world():
+    return 'Hello World!'  #所以这个函数的返回值就是我们要传送给客户端的值？
+#这里的路由可以有很多个，不一定只有一个，比如
+
+@app.route('/test')
+def test():
+    return "test"
+
+#动态链接，这部分的URL可能是不定的
+@app.route("/test/<username>")
+def testDnamicUrl(username):
+    return "this is the dynamic route"+username
+
+@app.route("/test/<path:username>")
+def testDynamicTransfer(username):
+    return "this is the dynamic tranfer"+username
+
+#重定向规则
+@app.route("/test/redirect/")
+def testredirect():
+    return "this is the redict"
+
+@app.route("/test/redirect")
+def testRedirect():
+    return "this is no slash"
+
+if __name__ == '__main__':
+    app.run(debug=True)
