@@ -1,4 +1,3 @@
-from flask import Flask
 #装饰器相当于在函数外面包一层函数，扩展原来函数的功能，只只不过通过python提供了一种语法糖，来简单的调用这个函数
 
 """
@@ -74,6 +73,9 @@ say_hello = debug(say_hello)  # 添加功能并保持原函数名不变
 
 
 from flask import Flask
+from flask import request
+from flask import url_for
+from flask import redirect
 app = Flask(__name__)   #指定flask是不是运行在我们要运行的这个当前脚本中，如果是作为模块导入的，那么有可能不会执行？？
 
 @app.route('/hello')    #通过装饰，告诉flask什么样的URL是我应该接受处理的，当这样的URL过来的时候我就调用下面的函数
@@ -102,6 +104,11 @@ def testredirect():
 @app.route("/test/redirect")
 def testRedirect():
     return "this is no slash"
+
+@app.route("/test/request")
+def dealwithRequest():
+    print("the method to get html is: "+request.method)
+    return redirect(url_for("testRedirect"))
 
 if __name__ == '__main__':
     app.run(debug=True)
