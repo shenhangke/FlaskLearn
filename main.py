@@ -1,4 +1,4 @@
-#装饰器相当于在函数外面包一层函数，扩展原来函数的功能，只只不过通过python提供了一种语法糖，来简单的调用这个函数
+# 装饰器相当于在函数外面包一层函数，扩展原来函数的功能，只只不过通过python提供了一种语法糖，来简单的调用这个函数
 
 """
 #装饰器
@@ -52,10 +52,6 @@ say_hello_dir()
     后面的函数名也可以当做这个装饰函数返回的函数使用
 """
 
-
-
-
-
 """
 def debug(func):
     def wrapper():
@@ -71,44 +67,93 @@ say_hello = debug(say_hello)  # 添加功能并保持原函数名不变
 #如果调用debug(say_hello)函数的话，实际上返回值say_hello是wrapper函数
 """
 
-
 from flask import Flask
 from flask import request
 from flask import url_for
 from flask import redirect
-app = Flask(__name__)   #指定flask是不是运行在我们要运行的这个当前脚本中，如果是作为模块导入的，那么有可能不会执行？？
 
-@app.route('/hello')    #通过装饰，告诉flask什么样的URL是我应该接受处理的，当这样的URL过来的时候我就调用下面的函数
+app = Flask(__name__)  # 指定flask是不是运行在我们要运行的这个当前脚本中，如果是作为模块导入的，那么有可能不会执行？？
+
+
+@app.route('/hello')  # 通过装饰，告诉flask什么样的URL是我应该接受处理的，当这样的URL过来的时候我就调用下面的函数
 def hello_world():
-    return 'Hello World!'  #所以这个函数的返回值就是我们要传送给客户端的值？
-#这里的路由可以有很多个，不一定只有一个，比如
+    return 'Hello World!'  # 所以这个函数的返回值就是我们要传送给客户端的值？
+
+
+# 这里的路由可以有很多个，不一定只有一个，比如
 
 @app.route('/test')
 def test():
     return "test"
 
-#动态链接，这部分的URL可能是不定的
+
+# 动态链接，这部分的URL可能是不定的
 @app.route("/test/<username>")
 def testDnamicUrl(username):
-    return "this is the dynamic route"+username
+    return "this is the dynamic route" + username
+
 
 @app.route("/test/<path:username>")
 def testDynamicTransfer(username):
-    return "this is the dynamic tranfer"+username
+    return "this is the dynamic tranfer" + username
 
-#重定向规则
+
+# 重定向规则
 @app.route("/test/redirect/")
 def testredirect():
     return "this is the redict"
+
 
 @app.route("/test/redirect")
 def testRedirect():
     return "this is no slash"
 
+
 @app.route("/test/request")
 def dealwithRequest():
-    print("the method to get html is: "+request.method)
+    print("the method to get html is: " + request.method)
     return redirect(url_for("testRedirect"))
 
+
+# 定义一个装饰器
+def docorate(func):
+    print("this is the decorate start")
+
+    def innerFunc(out: str):
+        print('this is the innerfunc,the out is:' + out)
+
+    return innerFunc
+
+
+@docorate
+def testOuterFunc(out: int):
+    print("this is the test outer func" + out)
+
+#这个函数要成为一个带参数的装饰，如果被@装饰的函数，后面会被马上执行（在刚刚错误传参的时候其实也验证过）
+#那么利用这一点，是的最外层带参数的这个函数返回一个原来的装饰器
+def arguDecorate(lever:str):
+    print("the lever is: "+lever)
+    def innerDecoprate(func):
+        def innerFunc(innerStr:str):
+            print("this is the inner func,the argu is: "+innerStr)
+        return innerFunc
+    return innerDecoprate
+
+
+"""
+分析一下这个装饰器的执行流程
+1.首先，由于arguDocorate被@所装饰，并且后面传入了参数，那么这个函数就被当作一个函数，立即执行
+2.上面的最外层函数被执行完之后，返回了一个参数是函数指针的函数，这个函数其实是实际上的装饰器
+3.就有点类似先执行函数，然后返回一个@xxx不带参数的装饰器？
+"""
+@arguDecorate("log")
+def testArguDeco(argu:str):
+    print("this is the testout func,the argu is: "+argu)
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    #由于testOuterFunc被decorate装饰
+    #首先，被装饰的函数会作为装饰器的一个指针（第一个？）传入到装饰器函数中
+    #然后被装饰的函数名实际上就变成了由装饰器返回的函数了
+    #testArguDeco("test")
+    pass
